@@ -26,9 +26,13 @@ public class User {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
+    @Column(length = 50, unique = true, nullable = false)
     private String login;
+
+    @Column(name = "full_name", length = 100, nullable = false)
     private String fullName;
 
     @Enumerated(EnumType.STRING)
+    @Column(length = 20, nullable = false)
     private UserStatus status;
 }

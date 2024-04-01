@@ -17,9 +17,7 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
-/**
- * Тесты для сервиса RequestRedistributionService.
- */
+
 public class RequestRedistributionServiceTest {
 
     @Mock
@@ -36,9 +34,6 @@ public class RequestRedistributionServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    /**
-     * Тестирование метода перераспределения запросов.
-     */
     @Test
     public void testRedistributeRequests() {
 
