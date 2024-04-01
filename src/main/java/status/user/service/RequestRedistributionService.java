@@ -54,7 +54,7 @@ public class RequestRedistributionService {
                 .collect(Collectors.toMap(
                         entry -> (Long) entry.get("userId"),
                         entry -> (Long) entry.get("requestCount"),
-                        (existing, replacement) -> existing)); // In case of a key collision, keep the existing value
+                        (existing, replacement) -> existing));
 
         if (onlineUsers.isEmpty()) {
             logger.warn("Нет доступных пользователей в статусе ONLINE для перераспределения запросов.");
