@@ -54,20 +54,36 @@ public class RequestRedistributionService {
                 .collect(Collectors.toMap(
                         entry -> (Long) entry.get("userId"),
                         entry -> (Long) entry.get("requestCount"),
-                        // В случае дублирования ключей сохраняем существующее значение
-                        (existing, replacement) -> existing));
+                        (existing, replacement) -> existing)); // In case of a key collision, keep the existing value
 
         if (onlineUsers.isEmpty()) {
             logger.warn("Нет доступных пользователей в статусе ONLINE для перераспределения запросов.");
             throw new IllegalStateException("Нет доступных пользователей в статусе ONLINE для перераспределения запросов.");
         }
 
+        // Перераспределение в соответствии с нагруженностью
+        double totalWeight = onlineUsers.stream()
+                .mapToDouble(user -> 1.0 / (userRequestCounts.getOrDefault(user.getId(), 0L) + 1))
+                .sum();
+
+        Random random = new Random();
         for (Request request : requestsToRedistribute) {
-            onlineUsers.sort(Comparator.comparingLong(user -> userRequestCounts.getOrDefault(user.getId(), 0L)));
-            User newResponsible = onlineUsers.get(0);
-            request.setResponsible(newResponsible);
-            requestRepository.save(request);
-            logger.debug("Запрос с ID {} переназначен пользователю с ID {}.", request.getId(), newResponsible.getId());
+            double value = random.nextDouble() * totalWeight;
+            double currentSum = 0;
+            User selectedUser = null;
+            for (User user : onlineUsers) {
+                currentSum += 1.0 / (userRequestCounts.getOrDefault(user.getId(), 0L) + 1);
+                if (currentSum >= value) {
+                    selectedUser = user;
+                    break;
+                }
+            }
+
+            if (selectedUser != null) {
+                request.setResponsible(selectedUser);
+                requestRepository.save(request);
+                logger.debug("Запрос с ID {} переназначен пользователю с ID {}.", request.getId(), selectedUser.getId());
+            }
         }
         logger.info("Перераспределение запросов завершено.");
     }
